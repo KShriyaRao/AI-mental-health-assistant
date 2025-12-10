@@ -1,11 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useChat } from '@/hooks/useChat';
 import { useVoice } from '@/hooks/useVoice';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { EmotionIndicator } from './EmotionIndicator';
 import { cn } from '@/lib/utils';
-import { Volume2, VolumeX, Leaf } from 'lucide-react';
+import { Phone, PhoneOff, Leaf } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export function ChatContainer() {
@@ -22,18 +22,33 @@ export function ChatContainer() {
     setTranscript,
   } = useVoice();
   
+  const [voiceCallActive, setVoiceCallActive] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const lastMessageIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSpeak = (text: string) => {
-    if (isSpeaking) {
+  // Auto-speak new AI messages when voice call is active
+  useEffect(() => {
+    if (!voiceCallActive || messages.length === 0) return;
+    
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage.role === 'assistant' && lastMessage.id !== lastMessageIdRef.current) {
+      lastMessageIdRef.current = lastMessage.id;
+      speak(lastMessage.content);
+    }
+  }, [messages, voiceCallActive, speak]);
+
+  const toggleVoiceCall = () => {
+    if (voiceCallActive) {
+      setVoiceCallActive(false);
       stopSpeaking();
+      stopListening();
     } else {
-      speak(text);
+      setVoiceCallActive(true);
     }
   };
 
@@ -46,8 +61,8 @@ export function ChatContainer() {
             <Leaf className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="font-display text-base font-medium text-foreground leading-tight">
-              AI Mental Health & Lifestyle
+            <h1 className="font-display text-sm font-medium text-foreground leading-tight">
+              A Web-Based AI Mental Health & Lifestyle Management System
             </h1>
             <p className="text-xs text-muted-foreground">
               Your wellness companion
@@ -60,24 +75,39 @@ export function ChatContainer() {
           
           {isVoiceSupported && (
             <Button
-              variant="ghost"
+              variant={voiceCallActive ? "default" : "ghost"}
               size="sm"
-              onClick={() => isSpeaking ? stopSpeaking() : undefined}
+              onClick={toggleVoiceCall}
               className={cn(
-                'h-9 w-9 p-0 rounded-full transition-all',
-                isSpeaking && 'bg-primary/10 text-primary'
+                'h-9 px-3 rounded-full transition-all gap-2',
+                voiceCallActive && 'bg-primary text-primary-foreground animate-pulse-soft'
               )}
-              disabled={!isSpeaking}
             >
-              {isSpeaking ? (
-                <Volume2 className="w-4 h-4 animate-pulse" />
+              {voiceCallActive ? (
+                <>
+                  <PhoneOff className="w-4 h-4" />
+                  <span className="text-xs">End Call</span>
+                </>
               ) : (
-                <VolumeX className="w-4 h-4 text-muted-foreground" />
+                <>
+                  <Phone className="w-4 h-4" />
+                  <span className="text-xs">Voice Call</span>
+                </>
               )}
             </Button>
           )}
         </div>
       </header>
+
+      {/* Voice Call Indicator */}
+      {voiceCallActive && (
+        <div className="px-4 py-2 bg-primary/10 border-b border-primary/20 flex items-center justify-center gap-2">
+          <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+          <span className="text-xs text-primary font-medium">
+            {isSpeaking ? 'AI is speaking...' : 'Voice call active - AI will speak responses'}
+          </span>
+        </div>
+      )}
 
       {/* Messages */}
       <div 
@@ -89,7 +119,6 @@ export function ChatContainer() {
             <ChatMessage 
               key={message.id} 
               message={message} 
-              onSpeak={isVoiceSupported ? handleSpeak : undefined}
             />
           ))}
           
