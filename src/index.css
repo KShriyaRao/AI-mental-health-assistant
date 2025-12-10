@@ -2,87 +2,132 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Crimson+Pro:wght@300;400;500&display=swap');
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Calming Mental Health Color Palette */
+    --background: 200 30% 98%;
+    --foreground: 200 20% 15%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 180 25% 97%;
+    --card-foreground: 200 20% 15%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 180 25% 97%;
+    --popover-foreground: 200 20% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Sage Green - Primary calming color */
+    --primary: 150 25% 45%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Soft Lavender - Secondary accent */
+    --secondary: 260 20% 92%;
+    --secondary-foreground: 260 20% 30%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted tones */
+    --muted: 200 15% 93%;
+    --muted-foreground: 200 15% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Calm Blue Accent */
+    --accent: 200 40% 88%;
+    --accent-foreground: 200 40% 25%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 200 20% 88%;
+    --input: 200 20% 88%;
+    --ring: 150 25% 45%;
 
-    --radius: 0.5rem;
+    --radius: 1rem;
+
+    /* Custom Mental Health Companion Colors */
+    --calm-sage: 150 30% 55%;
+    --calm-sage-light: 150 35% 90%;
+    --calm-lavender: 270 30% 75%;
+    --calm-lavender-light: 270 40% 95%;
+    --calm-ocean: 195 50% 65%;
+    --calm-ocean-light: 195 60% 92%;
+    --calm-sand: 35 40% 88%;
+    --calm-rose: 350 40% 80%;
+    --calm-mint: 165 40% 85%;
+
+    /* Emotion Colors */
+    --emotion-sad: 220 50% 60%;
+    --emotion-anxious: 45 70% 60%;
+    --emotion-stressed: 15 60% 55%;
+    --emotion-neutral: 200 20% 60%;
+    --emotion-positive: 150 50% 50%;
+
+    /* Gradients */
+    --gradient-calm: linear-gradient(135deg, hsl(var(--calm-sage-light)) 0%, hsl(var(--calm-lavender-light)) 50%, hsl(var(--calm-ocean-light)) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--calm-sage-light)) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--calm-mint) / 0.3) 100%);
+    --gradient-chat: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--calm-ocean-light) / 0.5) 100%);
+
+    /* Shadows */
+    --shadow-soft: 0 4px 20px -4px hsl(var(--calm-sage) / 0.15);
+    --shadow-glow: 0 0 30px hsl(var(--calm-sage) / 0.2);
+    --shadow-card: 0 8px 30px -8px hsl(var(--calm-sage) / 0.1);
+
+    /* Animations */
+    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 200 25% 8%;
+    --foreground: 200 20% 95%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 200 20% 12%;
+    --card-foreground: 200 20% 95%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 200 20% 12%;
+    --popover-foreground: 200 20% 95%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 150 30% 55%;
+    --primary-foreground: 200 25% 8%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 260 15% 20%;
+    --secondary-foreground: 260 20% 85%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 200 15% 18%;
+    --muted-foreground: 200 15% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 200 30% 22%;
+    --accent-foreground: 200 40% 85%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 200 15% 20%;
+    --input: 200 15% 20%;
+    --ring: 150 30% 55%;
+
+    --calm-sage: 150 25% 45%;
+    --calm-sage-light: 150 20% 18%;
+    --calm-lavender: 270 20% 35%;
+    --calm-lavender-light: 270 15% 15%;
+    --calm-ocean: 195 35% 35%;
+    --calm-ocean-light: 195 25% 15%;
+    --calm-sand: 35 20% 20%;
+    --calm-rose: 350 25% 25%;
+    --calm-mint: 165 25% 20%;
+
+    --gradient-calm: linear-gradient(135deg, hsl(var(--calm-sage-light)) 0%, hsl(var(--calm-lavender-light)) 50%, hsl(var(--calm-ocean-light)) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--calm-sage-light)) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--calm-mint) / 0.3) 100%);
+    --gradient-chat: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--calm-ocean-light) / 0.5) 100%);
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -100,6 +145,123 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
+
+@layer utilities {
+  .gradient-calm {
+    background: var(--gradient-calm);
+  }
+
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .gradient-card {
+    background: var(--gradient-card);
+  }
+
+  .gradient-chat {
+    background: var(--gradient-chat);
+  }
+
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .transition-smooth {
+    transition: var(--transition-smooth);
+  }
+
+  .transition-bounce {
+    transition: var(--transition-bounce);
+  }
+}
+
+/* Breathing Animation */
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes wave {
+  0%, 100% {
+    transform: scaleY(0.5);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.animate-breathe {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 3s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-wave {
+  animation: wave 0.5s ease-in-out infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--calm-sage) / 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--calm-sage) / 0.5);
 }
