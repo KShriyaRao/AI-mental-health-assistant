@@ -46,11 +46,11 @@ export function ChatContainer() {
             <Leaf className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="font-display text-lg font-medium text-foreground">
-              Serenity
+            <h1 className="font-display text-base font-medium text-foreground leading-tight">
+              AI Mental Health & Lifestyle
             </h1>
             <p className="text-xs text-muted-foreground">
-              Your mental health companion
+              Your wellness companion
             </p>
           </div>
         </div>

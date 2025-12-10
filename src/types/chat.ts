@@ -32,3 +32,25 @@ export interface MusicTrack {
   url: string;
   cover: string;
 }
+
+export type HabitType = 'sleep' | 'water' | 'study' | 'exercise';
+
+export interface Habit {
+  id: string;
+  type: HabitType;
+  target: number;
+  current: number;
+  unit: string;
+  date: string;
+}
+
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  dueDate: string;
+  dueTime?: string;
+  completed: boolean;
+  category: 'work' | 'rest' | 'personal' | 'health';
+  reminderEnabled: boolean;
+}
