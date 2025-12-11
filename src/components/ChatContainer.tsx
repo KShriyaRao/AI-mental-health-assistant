@@ -62,7 +62,7 @@ export function ChatContainer() {
           </div>
           <div>
             <h1 className="font-display text-sm font-medium text-foreground leading-tight">
-              A Web-Based AI Mental Health & Lifestyle Management System
+              A Web-Based AI for Mental Health & Wellness Management System
             </h1>
             <p className="text-xs text-muted-foreground">
               Your wellness companion
