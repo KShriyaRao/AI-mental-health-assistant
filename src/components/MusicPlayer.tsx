@@ -1,4 +1,4 @@
-import { useMusicPlayer } from '@/hooks/useMusicPlayer';
+import { useAmbientSounds } from '@/hooks/useAmbientSounds';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -10,14 +10,12 @@ export function MusicPlayer() {
     currentTrack,
     isPlaying,
     volume,
-    progress,
     tracks,
     playTrack,
     pause,
     resume,
-    seek,
     changeVolume,
-  } = useMusicPlayer();
+  } = useAmbientSounds();
 
   return (
     <div className="p-4 space-y-4">
@@ -90,7 +88,7 @@ export function MusicPlayer() {
                   {currentTrack.title}
                 </h4>
                 <p className="text-sm text-muted-foreground">
-                  Now Playing
+                  {isPlaying ? 'Now Playing' : 'Paused'}
                 </p>
               </div>
               <Button
@@ -106,15 +104,6 @@ export function MusicPlayer() {
                 )}
               </Button>
             </div>
-
-            {/* Progress */}
-            <Slider
-              value={[progress]}
-              max={100}
-              step={1}
-              onValueChange={([value]) => seek(value)}
-              className="cursor-pointer"
-            />
 
             {/* Volume */}
             <div className="flex items-center gap-3">
