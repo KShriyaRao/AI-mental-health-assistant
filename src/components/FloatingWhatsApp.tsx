@@ -6,25 +6,20 @@ const FloatingWhatsApp = () => {
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    // Keep it as a normal external link, but force a real new-tab open in sandboxed previews.
+    // Force a real top-level navigation (break out of any iframe/sandboxed preview).
     e.preventDefault();
 
-    const win = window.open(whatsappUrl, "_blank", "noopener,noreferrer");
-    if (!win) {
-      // Fallback: navigate the current context (and try to break out of an iframe if possible)
-      try {
-        window.top!.location.href = whatsappUrl;
-      } catch {
-        window.location.href = whatsappUrl;
-      }
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      window.top!.location.href = whatsappUrl;
+    } catch {
+      window.location.href = whatsappUrl;
     }
   };
 
   return (
     <a
       href={whatsappUrl}
-      target="_blank"
-      rel="noopener noreferrer"
       referrerPolicy="no-referrer"
       onClick={handleClick}
       className="fixed bottom-6 right-6 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
