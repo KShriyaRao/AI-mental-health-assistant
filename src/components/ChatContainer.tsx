@@ -1,54 +1,89 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useChat } from '@/hooks/useChat';
 import { useVoice } from '@/hooks/useVoice';
+import { useVoiceCall } from '@/hooks/useVoiceCall';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { EmotionIndicator } from './EmotionIndicator';
 import { cn } from '@/lib/utils';
-import { Phone, PhoneOff, Leaf } from 'lucide-react';
+import { Phone, PhoneOff, Leaf, Mic, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export function ChatContainer() {
   const { messages, isLoading, currentEmotion, sendMessage } = useChat();
   const { 
     isListening, 
-    isSpeaking, 
     transcript, 
     isSupported: isVoiceSupported,
     startListening, 
     stopListening, 
-    speak, 
-    stopSpeaking,
     setTranscript,
   } = useVoice();
   
-  const [voiceCallActive, setVoiceCallActive] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const lastMessageIdRef = useRef<string | null>(null);
+
+  // Handle voice call messages
+  const handleVoiceMessage = useCallback(async (text: string) => {
+    await sendMessage(text);
+  }, [sendMessage]);
+
+  const {
+    isCallActive,
+    isListening: isCallListening,
+    isSpeaking: isCallSpeaking,
+    callStatus,
+    isSupported: isCallSupported,
+    startCall,
+    endCall,
+    speakAndResume,
+  } = useVoiceCall({ onUserMessage: handleVoiceMessage });
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Auto-speak new AI messages when voice call is active
+  // Speak new AI messages during active call
   useEffect(() => {
-    if (!voiceCallActive || messages.length === 0) return;
+    if (!isCallActive || messages.length === 0) return;
     
     const lastMessage = messages[messages.length - 1];
     if (lastMessage.role === 'assistant' && lastMessage.id !== lastMessageIdRef.current) {
       lastMessageIdRef.current = lastMessage.id;
-      speak(lastMessage.content);
+      speakAndResume(lastMessage.content);
     }
-  }, [messages, voiceCallActive, speak]);
+  }, [messages, isCallActive, speakAndResume]);
 
   const toggleVoiceCall = () => {
-    if (voiceCallActive) {
-      setVoiceCallActive(false);
-      stopSpeaking();
-      stopListening();
+    if (isCallActive) {
+      endCall();
     } else {
-      setVoiceCallActive(true);
+      startCall();
+    }
+  };
+
+  const getCallStatusText = () => {
+    switch (callStatus) {
+      case 'listening':
+        return 'Listening to you...';
+      case 'processing':
+        return 'Thinking...';
+      case 'speaking':
+        return 'AI is speaking...';
+      default:
+        return 'Voice call active';
+    }
+  };
+
+  const getCallStatusIcon = () => {
+    switch (callStatus) {
+      case 'listening':
+        return <Mic className="w-4 h-4" />;
+      case 'speaking':
+        return <Volume2 className="w-4 h-4" />;
+      default:
+        return <div className="w-2 h-2 bg-primary rounded-full" />;
     }
   };
 
@@ -73,17 +108,17 @@ export function ChatContainer() {
         <div className="flex items-center gap-3">
           <EmotionIndicator emotion={currentEmotion} showLabel={false} />
           
-          {isVoiceSupported && (
+          {isCallSupported && (
             <Button
-              variant={voiceCallActive ? "default" : "ghost"}
+              variant={isCallActive ? "default" : "ghost"}
               size="sm"
               onClick={toggleVoiceCall}
               className={cn(
                 'h-9 px-3 rounded-full transition-all gap-2',
-                voiceCallActive && 'bg-primary text-primary-foreground animate-pulse-soft'
+                isCallActive && 'bg-primary text-primary-foreground'
               )}
             >
-              {voiceCallActive ? (
+              {isCallActive ? (
                 <>
                   <PhoneOff className="w-4 h-4" />
                   <span className="text-xs">End Call</span>
@@ -100,12 +135,39 @@ export function ChatContainer() {
       </header>
 
       {/* Voice Call Indicator */}
-      {voiceCallActive && (
-        <div className="px-4 py-2 bg-primary/10 border-b border-primary/20 flex items-center justify-center gap-2">
-          <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-          <span className="text-xs text-primary font-medium">
-            {isSpeaking ? 'AI is speaking...' : 'Voice call active - AI will speak responses'}
+      {isCallActive && (
+        <div className={cn(
+          "px-4 py-3 border-b flex items-center justify-center gap-3 transition-colors",
+          callStatus === 'listening' && "bg-green-500/10 border-green-500/20",
+          callStatus === 'processing' && "bg-yellow-500/10 border-yellow-500/20",
+          callStatus === 'speaking' && "bg-primary/10 border-primary/20"
+        )}>
+          <div className={cn(
+            "flex items-center justify-center w-8 h-8 rounded-full",
+            callStatus === 'listening' && "bg-green-500/20 animate-pulse",
+            callStatus === 'processing' && "bg-yellow-500/20 animate-pulse",
+            callStatus === 'speaking' && "bg-primary/20 animate-pulse"
+          )}>
+            {getCallStatusIcon()}
+          </div>
+          <span className={cn(
+            "text-sm font-medium",
+            callStatus === 'listening' && "text-green-600 dark:text-green-400",
+            callStatus === 'processing' && "text-yellow-600 dark:text-yellow-400",
+            callStatus === 'speaking' && "text-primary"
+          )}>
+            {getCallStatusText()}
           </span>
+          
+          {callStatus === 'listening' && (
+            <div className="flex gap-1 items-center">
+              <div className="w-1 h-3 bg-green-500 rounded-full animate-wave" />
+              <div className="w-1 h-5 bg-green-500 rounded-full animate-wave" style={{ animationDelay: '0.1s' }} />
+              <div className="w-1 h-4 bg-green-500 rounded-full animate-wave" style={{ animationDelay: '0.2s' }} />
+              <div className="w-1 h-6 bg-green-500 rounded-full animate-wave" style={{ animationDelay: '0.3s' }} />
+              <div className="w-1 h-3 bg-green-500 rounded-full animate-wave" style={{ animationDelay: '0.4s' }} />
+            </div>
+          )}
         </div>
       )}
 
@@ -138,17 +200,36 @@ export function ChatContainer() {
         </div>
       </div>
 
-      {/* Input */}
-      <ChatInput
-        onSend={sendMessage}
-        isLoading={isLoading}
-        isListening={isListening}
-        transcript={transcript}
-        isVoiceSupported={isVoiceSupported}
-        onStartListening={startListening}
-        onStopListening={stopListening}
-        setTranscript={setTranscript}
-      />
+      {/* Input - hidden during voice call */}
+      {!isCallActive && (
+        <ChatInput
+          onSend={sendMessage}
+          isLoading={isLoading}
+          isListening={isListening}
+          transcript={transcript}
+          isVoiceSupported={isVoiceSupported}
+          onStartListening={startListening}
+          onStopListening={stopListening}
+          setTranscript={setTranscript}
+        />
+      )}
+      
+      {/* Voice call footer */}
+      {isCallActive && (
+        <div className="px-4 py-4 border-t border-border/50 bg-card/80 backdrop-blur-sm">
+          <div className="flex items-center justify-center">
+            <Button
+              variant="destructive"
+              size="lg"
+              onClick={endCall}
+              className="rounded-full px-8 gap-2"
+            >
+              <PhoneOff className="w-5 h-5" />
+              End Voice Call
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
