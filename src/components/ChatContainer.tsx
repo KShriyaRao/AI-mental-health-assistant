@@ -5,8 +5,9 @@ import { useVoiceCall } from '@/hooks/useVoiceCall';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { EmotionIndicator } from './EmotionIndicator';
+import { SpeakingAvatar } from './SpeakingAvatar';
 import { cn } from '@/lib/utils';
-import { Phone, PhoneOff, Leaf, Mic, Volume2 } from 'lucide-react';
+import { Phone, PhoneOff, Leaf } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export function ChatContainer() {
@@ -63,30 +64,6 @@ export function ChatContainer() {
     }
   };
 
-  const getCallStatusText = () => {
-    switch (callStatus) {
-      case 'listening':
-        return 'Listening to you...';
-      case 'processing':
-        return 'Thinking...';
-      case 'speaking':
-        return 'AI is speaking...';
-      default:
-        return 'Voice call active';
-    }
-  };
-
-  const getCallStatusIcon = () => {
-    switch (callStatus) {
-      case 'listening':
-        return <Mic className="w-4 h-4" />;
-      case 'speaking':
-        return <Volume2 className="w-4 h-4" />;
-      default:
-        return <div className="w-2 h-2 bg-primary rounded-full" />;
-    }
-  };
-
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -134,101 +111,93 @@ export function ChatContainer() {
         </div>
       </header>
 
-      {/* Voice Call Indicator */}
-      {isCallActive && (
-        <div className={cn(
-          "px-4 py-3 border-b flex items-center justify-center gap-3 transition-colors",
-          callStatus === 'listening' && "bg-green-500/10 border-green-500/20",
-          callStatus === 'processing' && "bg-yellow-500/10 border-yellow-500/20",
-          callStatus === 'speaking' && "bg-primary/10 border-primary/20"
-        )}>
-          <div className={cn(
-            "flex items-center justify-center w-8 h-8 rounded-full",
-            callStatus === 'listening' && "bg-green-500/20 animate-pulse",
-            callStatus === 'processing' && "bg-yellow-500/20 animate-pulse",
-            callStatus === 'speaking' && "bg-primary/20 animate-pulse"
-          )}>
-            {getCallStatusIcon()}
-          </div>
-          <span className={cn(
-            "text-sm font-medium",
-            callStatus === 'listening' && "text-green-600 dark:text-green-400",
-            callStatus === 'processing' && "text-yellow-600 dark:text-yellow-400",
-            callStatus === 'speaking' && "text-primary"
-          )}>
-            {getCallStatusText()}
-          </span>
-          
-          {callStatus === 'listening' && (
-            <div className="flex gap-1 items-center">
-              <div className="w-1 h-3 bg-green-500 rounded-full animate-wave" />
-              <div className="w-1 h-5 bg-green-500 rounded-full animate-wave" style={{ animationDelay: '0.1s' }} />
-              <div className="w-1 h-4 bg-green-500 rounded-full animate-wave" style={{ animationDelay: '0.2s' }} />
-              <div className="w-1 h-6 bg-green-500 rounded-full animate-wave" style={{ animationDelay: '0.3s' }} />
-              <div className="w-1 h-3 bg-green-500 rounded-full animate-wave" style={{ animationDelay: '0.4s' }} />
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Messages */}
-      <div 
-        ref={containerRef}
-        className="flex-1 overflow-y-auto gradient-chat"
-      >
-        <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-          {messages.map((message) => (
-            <ChatMessage 
-              key={message.id} 
-              message={message} 
-            />
-          ))}
-          
-          {isLoading && (
-            <div className="flex items-start animate-fade-in">
-              <div className="gradient-card border border-border/50 shadow-soft rounded-2xl rounded-bl-sm px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" />
-                  <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                  <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <div ref={messagesEndRef} />
-        </div>
-      </div>
-
-      {/* Input - hidden during voice call */}
-      {!isCallActive && (
-        <ChatInput
-          onSend={sendMessage}
-          isLoading={isLoading}
-          isListening={isListening}
-          transcript={transcript}
-          isVoiceSupported={isVoiceSupported}
-          onStartListening={startListening}
-          onStopListening={stopListening}
-          setTranscript={setTranscript}
-        />
-      )}
-      
-      {/* Voice call footer */}
-      {isCallActive && (
-        <div className="px-4 py-4 border-t border-border/50 bg-card/80 backdrop-blur-sm">
-          <div className="flex items-center justify-center">
-            <Button
-              variant="destructive"
+      {/* Voice Call Mode */}
+      {isCallActive ? (
+        <div className="flex-1 flex flex-col items-center justify-center px-4 py-8 gradient-chat">
+          {/* Speaking Avatar */}
+          <div className="mb-12">
+            <SpeakingAvatar
+              isSpeaking={isCallSpeaking}
+              isListening={isCallListening}
+              isProcessing={callStatus === 'processing'}
               size="lg"
-              onClick={endCall}
-              className="rounded-full px-8 gap-2"
-            >
-              <PhoneOff className="w-5 h-5" />
-              End Voice Call
-            </Button>
+            />
           </div>
+
+          {/* Recent messages during call */}
+          <div className="w-full max-w-md space-y-3 mb-8">
+            {messages.slice(-3).map((message) => (
+              <div 
+                key={message.id}
+                className={cn(
+                  "px-4 py-2 rounded-xl text-sm animate-fade-in",
+                  message.role === 'user' 
+                    ? "bg-primary/10 text-foreground ml-auto max-w-[80%] text-right"
+                    : "bg-muted text-foreground mr-auto max-w-[80%]"
+                )}
+              >
+                {message.content.length > 100 
+                  ? message.content.substring(0, 100) + '...' 
+                  : message.content
+                }
+              </div>
+            ))}
+          </div>
+
+          {/* End call button */}
+          <Button
+            variant="destructive"
+            size="lg"
+            onClick={endCall}
+            className="rounded-full px-8 gap-2"
+          >
+            <PhoneOff className="w-5 h-5" />
+            End Voice Call
+          </Button>
         </div>
+      ) : (
+        <>
+          {/* Messages */}
+          <div 
+            ref={containerRef}
+            className="flex-1 overflow-y-auto gradient-chat"
+          >
+            <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+              {messages.map((message) => (
+                <ChatMessage 
+                  key={message.id} 
+                  message={message} 
+                />
+              ))}
+              
+              {isLoading && (
+                <div className="flex items-start animate-fade-in">
+                  <div className="gradient-card border border-border/50 shadow-soft rounded-2xl rounded-bl-sm px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" />
+                      <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                      <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div ref={messagesEndRef} />
+            </div>
+          </div>
+
+          {/* Input */}
+          <ChatInput
+            onSend={sendMessage}
+            isLoading={isLoading}
+            isListening={isListening}
+            transcript={transcript}
+            isVoiceSupported={isVoiceSupported}
+            onStartListening={startListening}
+            onStopListening={stopListening}
+            setTranscript={setTranscript}
+          />
+        </>
       )}
     </div>
   );

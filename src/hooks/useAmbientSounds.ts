@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
 
 export interface AmbientTrack {
   id: string;
@@ -53,11 +53,18 @@ export function useAmbientSounds() {
   const gainNodeRef = useRef<GainNode | null>(null);
   const nodesRef = useRef<AudioNode[]>([]);
   const intervalsRef = useRef<NodeJS.Timeout[]>([]);
+  const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
 
   const stopAllSounds = useCallback(() => {
+    // Clear all intervals
     intervalsRef.current.forEach(clearInterval);
     intervalsRef.current = [];
     
+    // Clear all timeouts
+    timeoutsRef.current.forEach(clearTimeout);
+    timeoutsRef.current = [];
+    
+    // Disconnect all audio nodes
     nodesRef.current.forEach(node => {
       try {
         node.disconnect();
@@ -65,12 +72,20 @@ export function useAmbientSounds() {
     });
     nodesRef.current = [];
     
+    // Close audio context
     if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-      audioContextRef.current.close();
+      audioContextRef.current.close().catch(() => {});
       audioContextRef.current = null;
     }
     gainNodeRef.current = null;
   }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopAllSounds();
+    };
+  }, [stopAllSounds]);
 
   const createNoiseBuffer = (context: AudioContext): AudioBuffer => {
     const bufferSize = context.sampleRate * 2;
@@ -85,8 +100,9 @@ export function useAmbientSounds() {
   const playOcean = useCallback((context: AudioContext, masterGain: GainNode) => {
     const noiseBuffer = createNoiseBuffer(context);
     
-    // Create wave-like modulation
     const createWave = () => {
+      if (context.state === 'closed') return;
+      
       const noise = context.createBufferSource();
       noise.buffer = noiseBuffer;
       noise.loop = true;
@@ -105,8 +121,8 @@ export function useAmbientSounds() {
       noise.start();
       nodesRef.current.push(noise, filter, waveGain);
       
-      // Simulate wave coming in and out
       const animateWave = () => {
+        if (context.state === 'closed') return;
         const now = context.currentTime;
         const duration = 4 + Math.random() * 4;
         waveGain.gain.setValueAtTime(0, now);
@@ -123,13 +139,15 @@ export function useAmbientSounds() {
       intervalsRef.current.push(interval);
     };
     
-    // Create multiple overlapping waves
     createWave();
-    setTimeout(() => createWave(), 2000);
-    setTimeout(() => createWave(), 4000);
+    const t1 = setTimeout(() => createWave(), 2000);
+    const t2 = setTimeout(() => createWave(), 4000);
+    timeoutsRef.current.push(t1, t2);
   }, []);
 
   const playRain = useCallback((context: AudioContext, masterGain: GainNode) => {
+    if (context.state === 'closed') return;
+    
     const noiseBuffer = createNoiseBuffer(context);
     
     const noise = context.createBufferSource();
@@ -155,8 +173,8 @@ export function useAmbientSounds() {
     noise.start();
     nodesRef.current.push(noise, highpass, lowpass, rainGain);
     
-    // Add random droplet sounds
     const createDroplet = () => {
+      if (context.state === 'closed') return;
       const osc = context.createOscillator();
       osc.type = 'sine';
       osc.frequency.value = 2000 + Math.random() * 2000;
@@ -180,6 +198,8 @@ export function useAmbientSounds() {
 
   const playBirds = useCallback((context: AudioContext, masterGain: GainNode) => {
     const createChirp = () => {
+      if (context.state === 'closed') return;
+      
       const osc = context.createOscillator();
       osc.type = 'sine';
       
@@ -192,7 +212,6 @@ export function useAmbientSounds() {
       const now = context.currentTime;
       const baseFreq = 2000 + Math.random() * 2000;
       
-      // Create chirping pattern
       osc.frequency.setValueAtTime(baseFreq, now);
       osc.frequency.linearRampToValueAtTime(baseFreq * 1.5, now + 0.05);
       osc.frequency.linearRampToValueAtTime(baseFreq * 1.2, now + 0.1);
@@ -209,40 +228,37 @@ export function useAmbientSounds() {
       osc.stop(now + 0.3);
     };
     
-    // Random bird chirps
     const interval = setInterval(() => {
       if (Math.random() > 0.6) {
         createChirp();
-        // Sometimes do multiple chirps
         if (Math.random() > 0.5) {
-          setTimeout(createChirp, 200);
+          const t = setTimeout(createChirp, 200);
+          timeoutsRef.current.push(t);
         }
         if (Math.random() > 0.7) {
-          setTimeout(createChirp, 400);
+          const t = setTimeout(createChirp, 400);
+          timeoutsRef.current.push(t);
         }
       }
     }, 800);
     intervalsRef.current.push(interval);
-    
-    // Initial chirps
-    createChirp();
-    setTimeout(createChirp, 500);
   }, []);
 
   const playChimes = useCallback((context: AudioContext, masterGain: GainNode) => {
-    const chimeFrequencies = [523.25, 587.33, 659.25, 783.99, 880, 1046.5]; // C5 to C6
+    const chimeFrequencies = [523.25, 587.33, 659.25, 783.99, 880, 1046.5];
     
     const createChime = () => {
+      if (context.state === 'closed') return;
+      
       const freq = chimeFrequencies[Math.floor(Math.random() * chimeFrequencies.length)];
       
       const osc = context.createOscillator();
       osc.type = 'sine';
       osc.frequency.value = freq;
       
-      // Add slight detuned oscillator for richness
       const osc2 = context.createOscillator();
       osc2.type = 'sine';
-      osc2.frequency.value = freq * 2.01; // Slight detune on harmonic
+      osc2.frequency.value = freq * 2.01;
       
       const chimeGain = context.createGain();
       const now = context.currentTime;
@@ -267,17 +283,13 @@ export function useAmbientSounds() {
     const interval = setInterval(() => {
       if (Math.random() > 0.5) {
         createChime();
-        // Sometimes play harmonious chimes together
         if (Math.random() > 0.7) {
-          setTimeout(createChime, 100);
+          const t = setTimeout(createChime, 100);
+          timeoutsRef.current.push(t);
         }
       }
     }, 1500);
     intervalsRef.current.push(interval);
-    
-    // Initial chimes
-    createChime();
-    setTimeout(createChime, 800);
   }, []);
 
   const playTrack = useCallback((track: AmbientTrack) => {
@@ -286,33 +298,14 @@ export function useAmbientSounds() {
       if (isPlaying) {
         stopAllSounds();
         setIsPlaying(false);
-      } else {
-        // Restart the track
-        stopAllSounds();
-        
-        const context = new AudioContext();
-        audioContextRef.current = context;
-        
-        const masterGain = context.createGain();
-        masterGain.gain.value = volume;
-        masterGain.connect(context.destination);
-        gainNodeRef.current = masterGain;
-        
-        switch (track.type) {
-          case 'ocean': playOcean(context, masterGain); break;
-          case 'rain': playRain(context, masterGain); break;
-          case 'birds': playBirds(context, masterGain); break;
-          case 'chimes': playChimes(context, masterGain); break;
-        }
-        
-        setIsPlaying(true);
+        return;
       }
-      return;
     }
     
-    // New track selected
+    // Stop any current playback first
     stopAllSounds();
     
+    // Create new audio context
     const context = new AudioContext();
     audioContextRef.current = context;
     
@@ -339,9 +332,27 @@ export function useAmbientSounds() {
 
   const resume = useCallback(() => {
     if (currentTrack) {
-      playTrack(currentTrack);
+      // Stop first then play
+      stopAllSounds();
+      
+      const context = new AudioContext();
+      audioContextRef.current = context;
+      
+      const masterGain = context.createGain();
+      masterGain.gain.value = volume;
+      masterGain.connect(context.destination);
+      gainNodeRef.current = masterGain;
+      
+      switch (currentTrack.type) {
+        case 'ocean': playOcean(context, masterGain); break;
+        case 'rain': playRain(context, masterGain); break;
+        case 'birds': playBirds(context, masterGain); break;
+        case 'chimes': playChimes(context, masterGain); break;
+      }
+      
+      setIsPlaying(true);
     }
-  }, [currentTrack, playTrack]);
+  }, [currentTrack, volume, stopAllSounds, playOcean, playRain, playBirds, playChimes]);
 
   const changeVolume = useCallback((newVolume: number) => {
     const clampedVolume = Math.max(0, Math.min(1, newVolume));
