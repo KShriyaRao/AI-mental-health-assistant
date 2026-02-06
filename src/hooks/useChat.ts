@@ -1,11 +1,16 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Message, Emotion, EmotionResult } from '@/types/chat';
+import { SupportStyle } from '@/components/SupportStyleSettings';
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 const EMOTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/detect-emotion`;
 
-export function useChat() {
+interface UseChatOptions {
+  supportStyle?: SupportStyle;
+}
+
+export function useChat({ supportStyle = 'auto' }: UseChatOptions = {}) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -74,6 +79,7 @@ export function useChat() {
         body: JSON.stringify({ 
           messages: apiMessages,
           emotion: emotionResult.emotion,
+          supportStyle: supportStyle,
         }),
       });
 
@@ -146,7 +152,7 @@ export function useChat() {
     } finally {
       setIsLoading(false);
     }
-  }, [messages, isLoading, detectEmotion]);
+  }, [messages, isLoading, detectEmotion, supportStyle]);
 
   return {
     messages,
