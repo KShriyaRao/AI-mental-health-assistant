@@ -64,17 +64,29 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, emotion } = await req.json();
+    const { messages, emotion, supportStyle } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    // Add emotion context to system prompt if detected
+    // Build contextual prompt based on user preferences
     let contextualPrompt = SYSTEM_PROMPT;
+    
+    // Add user's preferred support style
+    if (supportStyle && supportStyle !== 'auto') {
+      const styleInstructions: Record<string, string> = {
+        gentle: "\n\nUSER PREFERENCE: The user prefers Gentle & Validating Mode. Always use empathetic, warm, non-judgmental language. Focus on emotional validation and reassurance. Avoid solutions unless explicitly asked.",
+        practical: "\n\nUSER PREFERENCE: The user prefers Practical & Solution-Focused Mode. Use calm, structured, and actionable responses. Offer small, realistic steps or exercises. Keep emotional language minimal.",
+        minimal: "\n\nUSER PREFERENCE: The user prefers Minimal & Grounding Mode. Use very short, clear, slow-paced sentences. Avoid questions unless necessary. Prioritize grounding, breathing, or present-moment awareness.",
+      };
+      contextualPrompt += styleInstructions[supportStyle] || "";
+    }
+    
+    // Add detected emotion context
     if (emotion) {
-      contextualPrompt += `\n\nThe user's current detected emotion is: ${emotion}. Adjust your response tone accordingly while remaining natural.`;
+      contextualPrompt += `\n\nThe user's current detected emotion is: ${emotion}. Adjust your response tone accordingly while respecting their style preference.`;
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

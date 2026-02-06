@@ -2,16 +2,19 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useChat } from '@/hooks/useChat';
 import { useVoice } from '@/hooks/useVoice';
 import { useVoiceCall } from '@/hooks/useVoiceCall';
+import { useSupportStyle } from '@/hooks/useSupportStyle';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { EmotionIndicator } from './EmotionIndicator';
 import { SpeakingAvatar } from './SpeakingAvatar';
+import { SupportStyleSettings } from './SupportStyleSettings';
 import { cn } from '@/lib/utils';
 import { Phone, PhoneOff, Leaf } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export function ChatContainer() {
-  const { messages, isLoading, currentEmotion, sendMessage } = useChat();
+  const { supportStyle, setSupportStyle } = useSupportStyle();
+  const { messages, isLoading, currentEmotion, sendMessage } = useChat({ supportStyle });
   const { 
     isListening, 
     transcript, 
@@ -82,7 +85,8 @@ export function ChatContainer() {
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <SupportStyleSettings value={supportStyle} onChange={setSupportStyle} />
           <EmotionIndicator emotion={currentEmotion} showLabel={false} />
           
           {isCallSupported && (
