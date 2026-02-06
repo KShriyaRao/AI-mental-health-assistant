@@ -60,7 +60,7 @@ export function ChatInput({
 
   return (
     <div className="relative">
-      <div className="flex items-end gap-2 p-4 bg-card/80 backdrop-blur-sm border-t border-border/50">
+      <div className="flex items-end gap-2 p-3 sm:p-4 bg-card/80 backdrop-blur-sm border-t border-border/50">
         <div className="flex-1 relative">
           <Textarea
             ref={textareaRef}
@@ -69,9 +69,9 @@ export function ChatInput({
             onKeyDown={handleKeyDown}
             placeholder="Share what's on your mind..."
             className={cn(
-              'min-h-[52px] max-h-32 resize-none pr-12 rounded-xl border-border/50',
+              'min-h-[44px] sm:min-h-[52px] max-h-32 resize-none pr-10 sm:pr-12 rounded-xl border-border/50',
               'focus:border-primary/50 focus:ring-primary/20 transition-all',
-              'placeholder:text-muted-foreground/60'
+              'placeholder:text-muted-foreground/60 text-sm sm:text-base'
             )}
             disabled={isLoading}
           />
@@ -83,7 +83,7 @@ export function ChatInput({
               size="sm"
               onClick={toggleListening}
               className={cn(
-                'absolute right-2 bottom-2 h-8 w-8 p-0 rounded-full transition-all',
+                'absolute right-1.5 sm:right-2 bottom-1.5 sm:bottom-2 h-7 w-7 sm:h-8 sm:w-8 p-0 rounded-full transition-all',
                 isListening && 'bg-destructive/10 text-destructive animate-pulse'
               )}
             >
@@ -99,18 +99,18 @@ export function ChatInput({
         <Button
           onClick={handleSubmit}
           disabled={!input.trim() || isLoading}
-          className="h-[52px] w-[52px] rounded-xl bg-primary hover:bg-primary/90 shadow-soft"
+          className="h-[44px] w-[44px] sm:h-[52px] sm:w-[52px] rounded-xl bg-primary hover:bg-primary/90 shadow-soft shrink-0"
         >
           {isLoading ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
           ) : (
-            <Send className="w-5 h-5" />
+            <Send className="w-4 h-4 sm:w-5 sm:h-5" />
           )}
         </Button>
       </div>
       
       {isListening && (
-        <div className="absolute -top-12 left-4 right-4 bg-destructive/10 text-destructive px-4 py-2 rounded-lg text-sm flex items-center gap-2 animate-pulse">
+        <div className="absolute -top-10 sm:-top-12 left-3 right-3 sm:left-4 sm:right-4 bg-destructive/10 text-destructive px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm flex items-center gap-2 animate-pulse">
           <div className="w-2 h-2 bg-destructive rounded-full animate-pulse" />
           Listening... Speak now
         </div>
