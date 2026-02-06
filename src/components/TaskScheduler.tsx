@@ -106,7 +106,7 @@ export function TaskScheduler() {
         <Button
           variant="ghost"
           size="sm"
-          className="opacity-0 group-hover:opacity-100 h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+          className="sm:opacity-0 sm:group-hover:opacity-100 h-7 w-7 p-0 text-muted-foreground hover:text-destructive shrink-0"
           onClick={() => deleteTask(task.id)}
         >
           <Trash2 className="w-3 h-3" />
@@ -143,7 +143,7 @@ export function TaskScheduler() {
             />
           </div>
           
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 sm:flex gap-2">
             {(Object.keys(categoryConfig) as Task['category'][]).map(cat => {
               const config = categoryConfig[cat];
               const Icon = config.icon;
@@ -152,7 +152,7 @@ export function TaskScheduler() {
                   key={cat}
                   variant={newTask.category === cat ? 'default' : 'outline'}
                   size="sm"
-                  className="flex-1"
+                  className="flex-1 text-xs sm:text-sm"
                   onClick={() => setNewTask(prev => ({ ...prev, category: cat }))}
                 >
                   <Icon className="w-3 h-3 mr-1" />
