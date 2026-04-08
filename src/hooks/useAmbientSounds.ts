@@ -52,8 +52,8 @@ export function useAmbientSounds() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const gainNodeRef = useRef<GainNode | null>(null);
   const nodesRef = useRef<AudioNode[]>([]);
-  const intervalsRef = useRef<NodeJS.Timeout[]>([]);
-  const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
+  const intervalsRef = useRef<ReturnType<typeof setInterval>[]>([]);
+  const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const stopAllSounds = useCallback(() => {
     // Clear all intervals
