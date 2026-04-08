@@ -4,6 +4,9 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Brain, Wind, Heart, Sparkles, ChevronRight, X, Check, Pause, Play } from 'lucide-react';
+import { BreathingVisualizer } from '@/components/exercises/BreathingVisualizer';
+import { GroundingVisualizer } from '@/components/exercises/GroundingVisualizer';
+import { ExerciseVisualizer } from '@/components/exercises/ExerciseVisualizer';
 
 const exercises: CBTExercise[] = [
   {
@@ -14,11 +17,11 @@ const exercises: CBTExercise[] = [
     duration: '3 min',
     steps: [
       'Find a comfortable position and gently close your eyes.',
-      'Breathe in slowly through your nose… 1… 2… 3… 4…',
-      'Hold your breath gently… 1… 2… 3… 4…',
-      'Exhale slowly through your mouth… 1… 2… 3… 4… 5… 6…',
-      'Repeat this cycle. Feel your body softening with each breath.',
-      'Notice the calm settling in. You are safe here.',
+      'Let the circle guide your breath…',
+      'Follow the rhythm. There is no rush.',
+      'Feel your body softening with each cycle.',
+      'Notice the calm settling in.',
+      'You are safe here. Stay as long as you need.',
     ],
   },
   {
@@ -33,7 +36,7 @@ const exercises: CBTExercise[] = [
       'Reach out and notice 4 things you can touch.',
       'Listen carefully for 3 sounds around you.',
       'Identify 2 things you can smell right now.',
-      'Notice 1 thing you can taste. You are here. You are present.',
+      'Notice 1 thing you can taste. You are here.',
     ],
   },
   {
@@ -63,7 +66,7 @@ const exercises: CBTExercise[] = [
       'Let yourself truly feel that gratitude in your heart.',
       'Now think of a second thing. Let warmth fill you.',
       'And a third. Smile gently as you hold these close.',
-      'Carry this warmth with you. You have so much good in your life.',
+      'Carry this warmth with you.',
     ],
   },
 ];
@@ -132,7 +135,7 @@ export function CBTExercises({ onStartExercise }: CBTExercisesProps) {
         setCurrentStep(prev => prev + 1);
       }
       setIsTransitioning(false);
-    }, 400);
+    }, 600);
   };
 
   const handleComplete = () => {
@@ -142,7 +145,7 @@ export function CBTExercises({ onStartExercise }: CBTExercisesProps) {
       setCurrentStep(0);
       setSecondsElapsed(0);
       setIsTransitioning(false);
-    }, 400);
+    }, 600);
   };
 
   const formatTime = (s: number) => {
@@ -152,119 +155,136 @@ export function CBTExercises({ onStartExercise }: CBTExercisesProps) {
   };
 
   if (activeExercise) {
-    const Icon = iconMap[activeExercise.icon];
     const isLastStep = currentStep === activeExercise.steps.length - 1;
     const theme = exerciseThemes[activeExercise.id];
     const progress = ((currentStep + 1) / activeExercise.steps.length) * 100;
+    const isBreathing = activeExercise.id === '1';
+    const isGrounding = activeExercise.id === '2';
 
     return (
       <div className="flex flex-col h-full">
-        {/* Immersive exercise view */}
         <div className={cn(
           'flex-1 flex flex-col items-center justify-between p-6 relative overflow-hidden',
           'bg-gradient-to-b', theme.gradient,
-          'transition-all duration-700'
+          'transition-all duration-1000'
         )}>
-          {/* Ambient breathing circle */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className={cn(
-              'w-64 h-64 rounded-full opacity-20 blur-3xl',
-              theme.accent,
-              activeExercise.icon === 'wind' ? 'animate-breathe' : 'animate-pulse-soft'
-            )} />
+          {/* Floating ambient particles */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={i}
+                className="absolute rounded-full animate-float"
+                style={{
+                  width: 3 + i * 2,
+                  height: 3 + i * 2,
+                  background: 'hsl(var(--foreground) / 0.04)',
+                  left: `${15 + i * 18}%`,
+                  top: `${20 + (i % 3) * 25}%`,
+                  animationDelay: `${i * 2}s`,
+                  animationDuration: `${6 + i * 2}s`,
+                }}
+              />
+            ))}
           </div>
 
-          {/* Top bar */}
+          {/* Top bar — minimal */}
           <div className="w-full flex items-center justify-between z-10">
             <button
               onClick={handleComplete}
-              className="p-2 rounded-full hover:bg-background/30 transition-colors"
+              className="p-2.5 rounded-full hover:bg-background/20 transition-colors duration-300"
             >
-              <X className="w-5 h-5 text-foreground/70" />
+              <X className="w-4 h-4 text-foreground/50" />
             </button>
             <div className="flex items-center gap-3">
-              <span className="text-xs text-muted-foreground font-medium tracking-wide">
+              <span className="text-xs text-foreground/40 font-light tracking-widest">
                 {formatTime(secondsElapsed)}
               </span>
               <button
                 onClick={() => setIsPaused(!isPaused)}
-                className="p-2 rounded-full hover:bg-background/30 transition-colors"
+                className="p-2.5 rounded-full hover:bg-background/20 transition-colors duration-300"
               >
-                {isPaused ? <Play className="w-4 h-4 text-foreground/70" /> : <Pause className="w-4 h-4 text-foreground/70" />}
+                {isPaused
+                  ? <Play className="w-3.5 h-3.5 text-foreground/50" />
+                  : <Pause className="w-3.5 h-3.5 text-foreground/50" />
+                }
               </button>
             </div>
           </div>
 
-          {/* Center content */}
-          <div className="flex-1 flex flex-col items-center justify-center z-10 max-w-md mx-auto text-center space-y-8">
-            {/* Exercise icon with glow */}
-            <div className={cn(
-              'p-5 rounded-full transition-all duration-700',
-              theme.accent, theme.glow,
-              activeExercise.icon === 'wind' && 'animate-breathe'
-            )}>
-              <Icon className="w-8 h-8 text-primary" />
+          {/* Visualizer area */}
+          <div className="flex-1 flex flex-col items-center justify-center z-10 w-full max-w-sm mx-auto">
+            {/* Exercise-specific visualizer */}
+            <div className="mb-8">
+              {isBreathing && (
+                <BreathingVisualizer isPaused={isPaused} />
+              )}
+              {isGrounding && (
+                <GroundingVisualizer
+                  currentStep={currentStep}
+                  isTransitioning={isTransitioning}
+                />
+              )}
+              {!isBreathing && !isGrounding && (
+                <ExerciseVisualizer
+                  exerciseId={activeExercise.id}
+                  icon={activeExercise.icon}
+                  currentStep={currentStep}
+                  totalSteps={activeExercise.steps.length}
+                  isTransitioning={isTransitioning}
+                />
+              )}
             </div>
 
-            {/* Step text */}
+            {/* Step text — soft and minimal */}
             <div className={cn(
-              'transition-all duration-500',
-              isTransitioning ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
+              'text-center transition-all duration-700 ease-out px-4',
+              isTransitioning
+                ? 'opacity-0 translate-y-3 scale-[0.98]'
+                : 'opacity-100 translate-y-0 scale-100'
             )}>
-              <p className="text-lg sm:text-xl leading-relaxed font-display font-light text-foreground/90">
+              <p className="text-base sm:text-lg leading-relaxed font-display font-light text-foreground/75">
                 {activeExercise.steps[currentStep]}
               </p>
             </div>
-
-            {/* Step dots */}
-            <div className="flex items-center gap-2">
-              {activeExercise.steps.map((_, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    'rounded-full transition-all duration-500',
-                    i === currentStep
-                      ? 'w-6 h-2 bg-primary'
-                      : i < currentStep
-                        ? 'w-2 h-2 bg-primary/50'
-                        : 'w-2 h-2 bg-foreground/15'
-                  )}
-                />
-              ))}
-            </div>
           </div>
 
-          {/* Bottom action */}
-          <div className="w-full z-10">
-            {/* Progress line */}
-            <div className="w-full h-0.5 bg-foreground/10 rounded-full mb-6 overflow-hidden">
+          {/* Bottom — ultra-minimal */}
+          <div className="w-full z-10 space-y-4">
+            {/* Thin progress */}
+            <div className="w-full h-px bg-foreground/5 rounded-full overflow-hidden">
               <div
-                className="h-full bg-primary/60 rounded-full transition-all duration-700 ease-out"
-                style={{ width: `${progress}%` }}
+                className="h-full rounded-full transition-all duration-1000 ease-out"
+                style={{
+                  width: `${progress}%`,
+                  background: 'hsl(var(--foreground) / 0.15)',
+                }}
               />
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">
-                {currentStep + 1} of {activeExercise.steps.length}
+              <span className="text-[10px] text-foreground/30 tracking-widest font-light">
+                {currentStep + 1} / {activeExercise.steps.length}
               </span>
               <Button
                 onClick={isLastStep ? handleComplete : handleNext}
-                variant={isLastStep ? 'default' : 'ghost'}
+                variant="ghost"
+                size="sm"
                 className={cn(
-                  'gap-2 rounded-full px-6',
-                  isLastStep && 'bg-primary text-primary-foreground'
+                  'gap-2 rounded-full px-5 text-xs font-light tracking-wide transition-all duration-500',
+                  isLastStep
+                    ? 'bg-primary/10 text-primary hover:bg-primary/20'
+                    : 'text-foreground/50 hover:text-foreground/70 hover:bg-background/20'
                 )}
               >
                 {isLastStep ? (
                   <>
-                    <Check className="w-4 h-4" />
+                    <Check className="w-3.5 h-3.5" />
                     Complete
                   </>
                 ) : (
                   <>
                     Continue
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-3.5 h-3.5" />
                   </>
                 )}
               </Button>
@@ -304,12 +324,10 @@ export function CBTExercises({ onStartExercise }: CBTExercisesProps) {
             >
               <CardContent className="p-0">
                 <div className="flex items-stretch">
-                  {/* Colored accent strip */}
                   <div className={cn(
                     'w-1.5 bg-gradient-to-b shrink-0',
                     theme.gradient
                   )} />
-                  
                   <div className="flex items-center gap-4 p-4 flex-1 min-w-0">
                     <div className={cn(
                       'p-3 rounded-2xl shrink-0 transition-all duration-500',
